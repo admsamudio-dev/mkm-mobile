@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MKM Mobile – Lucro Presumido SC</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0b3d2e" />
+
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 0;
+      background: #f6f7fb;
+      color: #111;
+    }
+
+    header {
+      background: #0b3d2e;
+      color: #fff;
+      padding: 15px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 18px;
+      margin: 0;
+    }
+
+    main {
+      padding: 15px;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .card {
+      background: #fff;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 12px;
+      width: 100%;
+      background: #0b3d2e;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: bold;
+    }
+
+    .resultado {
+      margin-top: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #0b3d2e;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>MKM Mobile – Lucro Presumido (SC)</h1>
+</header>
+
+<main>
+
+  <div class="card">
+    <h2>Configurações (%)</h2>
+
+    <label>PIS</label>
+    <input id="pis" value="0.65">
+
+    <label>COFINS</label>
+    <input id="cofins" value="3">
+
+    <label>ICMS</label>
+    <input id="icms" value="17">
+
+    <label>Despesas Fixas</label>
+    <input id="fixas" value="10">
+
+    <label>Despesas Variáveis</label>
+    <input id="variaveis" value="5">
+
+    <label>Lucro Desejado</label>
+    <input id="lucro" value="20">
+  </div>
+
+  <div class="card">
+    <h2>Produto</h2>
+
+    <label>Custo do Produto (R$)</label>
+    <input id="custo" placeholder="Ex: 5000">
+
+    <label>Frete (R$)</label>
+    <input id="frete" placeholder="Ex: 300">
+
+    <button onclick="calcular()">Calcular Preço de Venda</button>
+
+    <div class="resultado" id="resultado"></div>
+  </div>
+
+</main>
+
+<script>
+  function calcular() {
+    const pis = parseFloat(document.getElementById("pis").value) / 100;
+    const cofins = parseFloat(document.getElementById("cofins").value) / 100;
+    const icms = parseFloat(document.getElementById("icms").value) / 100;
+    const fixas = parseFloat(document.getElementById("fixas").value) / 100;
+    const variaveis = parseFloat(document.getElementById("variaveis").value) / 100;
+    const lucro = parseFloat(document.getElementById("lucro").value) / 100;
+
+    const custo = parseFloat(document.getElementById("custo").value) || 0;
+    const frete = parseFloat(document.getElementById("frete").value) || 0;
+
+    const tributos = pis + cofins + icms;
+    const markupDivisor = 1 - (tributos + fixas + variaveis + lucro);
+
+    if (markupDivisor <= 0) {
+      document.getElementById("resultado").innerText =
+        "❌ Erro: percentuais ultrapassam 100%";
+      return;
+    }
+
+    const markup = 1 / markupDivisor;
+    const precoVenda = (custo + frete) * markup;
+
+    document.getElementById("resultado").innerText =
+      "Preço mínimo de venda: R$ " + precoVenda.toFixed(2);
+  }
+</script>
+
+</body>
+</html>
