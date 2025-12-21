@@ -1,157 +1,144 @@
-<!doctype html>
-<html lang="pt-br">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MKM Mobile – Lucro Presumido SC</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MKM Mobile</title>
+  <meta name="theme-color" content="#0a7cff" />
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#0b3d2e" />
-
   <style>
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      margin: 0;
-      background: #f6f7fb;
-      color: #111;
-    }
-
-    header {
-      background: #0b3d2e;
-      color: #fff;
-      padding: 15px;
-      text-align: center;
-    }
-
-    h1 {
-      font-size: 18px;
-      margin: 0;
-    }
-
-    main {
-      padding: 15px;
-      max-width: 900px;
-      margin: auto;
-    }
-
-    .card {
-      background: #fff;
-      padding: 15px;
-      border-radius: 12px;
-      margin-bottom: 15px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-
-    label {
-      display: block;
-      font-size: 13px;
-      margin-top: 10px;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
-
-    button {
-      margin-top: 15px;
-      padding: 12px;
-      width: 100%;
-      background: #0b3d2e;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: bold;
-    }
-
-    .resultado {
-      margin-top: 10px;
-      font-size: 18px;
-      font-weight: bold;
-      color: #0b3d2e;
-    }
+    body { font-family: Arial, sans-serif; margin: 0; background: #f6f7fb; }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 16px; }
+    .card { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.06); }
+    h1 { margin: 0 0 6px; font-size: 22px; }
+    .sub { margin: 0 0 14px; opacity: .8; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    label { display:block; font-size: 13px; margin-bottom: 6px; opacity: .85; }
+    input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #d9dce6; font-size: 15px; }
+    .hint { font-size: 12px; opacity: .75; margin-top: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 14px; overflow: hidden; border-radius: 12px; }
+    th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eef0f6; }
+    th { background: #fafbff; font-size: 13px; opacity: .85; }
+    .ok { color: #0a7c2f; font-weight: 700; }
+    .bad { color: #b00020; font-weight: 700; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
   </style>
 </head>
-
 <body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Calculadora MKM</h1>
+      <p class="sub">
+        Fixos: <b>5,93%</b> (PIS 0,65% + COFINS 3% + IRPJ 1,2% + CSLL 1,08%)
+      </p>
 
-<header>
-  <h1>MKM Mobile – Lucro Presumido (SC)</h1>
-</header>
+      <div class="grid">
+        <div>
+          <label for="custo">Custo (R$)</label>
+          <input id="custo" placeholder="Ex: 148,00" inputmode="decimal" />
+        </div>
+        <div>
+          <label for="icms">ICMS (%)</label>
+          <input id="icms" placeholder="Ex: 12" inputmode="decimal" />
+        </div>
+        <div>
+          <label for="frete">Frete (%)</label>
+          <input id="frete" placeholder="Ex: 5" inputmode="decimal" />
+        </div>
+      </div>
 
-<main>
+      <div class="hint">
+        Fórmula: <span class="mono">Preço = Custo / (1 - ((5,93 + ICMS + Frete + MKM) / 100))</span>
+      </div>
 
-  <div class="card">
-    <h2>Configurações (%)</h2>
-
-    <label>PIS</label>
-    <input id="pis" value="0.65">
-
-    <label>COFINS</label>
-    <input id="cofins" value="3">
-
-    <label>ICMS</label>
-    <input id="icms" value="17">
-
-    <label>Despesas Fixas</label>
-    <input id="fixas" value="10">
-
-    <label>Despesas Variáveis</label>
-    <input id="variaveis" value="5">
-
-    <label>Lucro Desejado</label>
-    <input id="lucro" value="20">
+      <table>
+        <thead>
+          <tr>
+            <th>MKM</th>
+            <th>Total % aplicado</th>
+            <th>Fator</th>
+            <th>Preço de venda</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
   </div>
 
-  <div class="card">
-    <h2>Produto</h2>
+  <script>
+    // ====== BASE OFICIAL (Planilha Ale) ======
+    const FIXOS = { pis: 0.65, cofins: 3.00, irpj: 1.20, csll: 1.08 };
+    const FIXOS_TOTAL = FIXOS.pis + FIXOS.cofins + FIXOS.irpj + FIXOS.csll; // 5.93
+    const MKMS = [10, 15, 20, 30];
 
-    <label>Custo do Produto (R$)</label>
-    <input id="custo" placeholder="Ex: 5000">
-
-    <label>Frete (R$)</label>
-    <input id="frete" placeholder="Ex: 300">
-
-    <button onclick="calcular()">Calcular Preço de Venda</button>
-
-    <div class="resultado" id="resultado"></div>
-  </div>
-
-</main>
-
-<script>
-  function calcular() {
-    const pis = parseFloat(document.getElementById("pis").value) / 100;
-    const cofins = parseFloat(document.getElementById("cofins").value) / 100;
-    const icms = parseFloat(document.getElementById("icms").value) / 100;
-    const fixas = parseFloat(document.getElementById("fixas").value) / 100;
-    const variaveis = parseFloat(document.getElementById("variaveis").value) / 100;
-    const lucro = parseFloat(document.getElementById("lucro").value) / 100;
-
-    const custo = parseFloat(document.getElementById("custo").value) || 0;
-    const frete = parseFloat(document.getElementById("frete").value) || 0;
-
-    const tributos = pis + cofins + icms;
-    const markupDivisor = 1 - (tributos + fixas + variaveis + lucro);
-
-    if (markupDivisor <= 0) {
-      document.getElementById("resultado").innerText =
-        "❌ Erro: percentuais ultrapassam 100%";
-      return;
+    function toNumberBR(v) {
+      if (v === null || v === undefined) return 0;
+      const s = String(v).trim();
+      if (!s) return 0;
+      const cleaned = s.replace(/\./g, "").replace(",", ".");
+      const n = Number(cleaned);
+      return Number.isFinite(n) ? n : 0;
     }
 
-    const markup = 1 / markupDivisor;
-    const precoVenda = (custo + frete) * markup;
+    function formatBRL(n) {
+      if (!Number.isFinite(n)) return "—";
+      return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
 
-    document.getElementById("resultado").innerText =
-      "Preço mínimo de venda: R$ " + precoVenda.toFixed(2);
-  }
-</script>
+    function calcPrecoVenda(custo, icmsPct, fretePct, mkmPct) {
+      const custoNum = toNumberBR(custo);
+      const icms = toNumberBR(icmsPct);
+      const frete = toNumberBR(fretePct);
+      const mkm = toNumberBR(mkmPct);
 
+      const totalPct = FIXOS_TOTAL + icms + frete + mkm;
+      const fator = 1 - (totalPct / 100);
+
+      if (custoNum <= 0) return { ok: false, motivo: "Custo inválido", totalPct, fator, preco: 0 };
+      if (fator <= 0) return { ok: false, motivo: "Total % >= 100% (fator inválido)", totalPct, fator, preco: 0 };
+
+      const preco = custoNum / fator;
+      return { ok: true, motivo: "OK", totalPct, fator, preco };
+    }
+
+    const elCusto = document.getElementById("custo");
+    const elIcms = document.getElementById("icms");
+    const elFrete = document.getElementById("frete");
+    const tbody = document.getElementById("tbody");
+
+    function render() {
+      const custo = elCusto.value;
+      const icms = elIcms.value;
+      const frete = elFrete.value;
+
+      tbody.innerHTML = "";
+
+      MKMS.forEach((mkm) => {
+        const r = calcPrecoVenda(custo, icms, frete, mkm);
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><b>${mkm}%</b></td>
+          <td>${Number.isFinite(r.totalPct) ? r.totalPct.toFixed(2).replace(".", ",") + "%" : "—"}</td>
+          <td>${Number.isFinite(r.fator) ? r.fator.toFixed(4).replace(".", ",") : "—"}</td>
+          <td>${r.ok ? "<b>" + formatBRL(r.preco) + "</b>" : "—"}</td>
+          <td class="${r.ok ? "ok" : "bad"}">${r.ok ? "OK" : r.motivo}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    elCusto.addEventListener("input", render);
+    elIcms.addEventListener("input", render);
+    elFrete.addEventListener("input", render);
+
+    render();
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    }
+  </script>
 </body>
 </html>
